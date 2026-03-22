@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>ИТМО | Расписание занятий</title>
+    <link rel="icon" href="/images/favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/styles/main.css">
+    <script src="/js/search.js"></script>
+</head>
+<body>
+<header class="header">
+    <div class="header-container">
+        <div class="brand">
+            <img src="/images/itmo-logo-light.svg" alt="ИТМО">
+            <span>Расписание</span>
+        </div>
+        <form method="get" action="/" class="search-form">
+            <div class="actions" id="actions" th:classappend="${param.query != null} ? 'open' : ''">
+                <div class="search-wrapper">
+                    <button class="search-toggle" id="searchToggle" type="button">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <div class="search-field" id="searchField">
+                        <i class="fas fa-search"></i>
+                        <input type="text" name="query" th:value="${param.query}"
+                               placeholder="поиск по группе, преподавателю или аудитории"
+                               autocomplete="off" id="searchInput">
+                        <div class="suggestions-container" id="suggestionsContainer"></div>
+                        <button class="close-search" id="closeSearch" type="button">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div sec:authorize="hasRole('ADMIN')">
+                        <a href="/admin" class="admin-toggle">
+                            <i class="fas fa-user-cog"></i>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</header>
+
+<main class="main-content">
+    <div class="welcome-message" th:if="${showWelcome}">
+        <p>для того, чтобы увидеть расписание, воспользуйтесь поиском</p>
+    </div>
+    <div class="error-message" th:if="${error}">
+        <p th:text="${error}"></p>
+    </div>
+    <div class="week-navigation" th:if="${not #lists.isEmpty(weekDays)}">
+        <a th:href="@{/(query=${query}, weekOffset=${weekOffset - 1})}" class="nav-arrow">
+            <i class="fas fa-chevron-left"></i>
+        </a>
+        <a th:href="@{/(query=${query}, weekOffset=0)}" class="nav-today">текущая неделя</a>
+        <a th:href="@{/(query=${query}, weekOffset=${weekOffset + 1})}" class="nav-arrow">
+            <i class="fas fa-chevron-right"></i>
+        </a>
+    </div>
+    <div class="schedule-grid" th:if="${not #lists.isEmpty(weekDays)}">
+        <div class="day-card" th:each="day : ${weekDays}">
+            <div class="day-header">
+                <span class="day-name" th:text="${day.dayName}">пн</span>
+                <span class="day-date" th:text="${#temporals.format(day.date, 'dd.MM')}">16.03</span>
+            </div>
+            <div class="classes-grid" th:if="${not #lists.isEmpty(day.classes)}">
+                <div class="class-pill" th:each="class, stat : ${day.classes}">
+                    <div class="tags-container">
+                        <span class="class-tag type" th:text="${class.classType}">лекция</span>
+                        <span class="class-tag subgroup" th:if="${class.subgroup != null}" th:text="${class.subgroup}">1 п/г</span>
+                        <span class="class-tag group" th:text="${class.groupCode}">группа</span>
+                        <span class="class-tag classroom"
+                              th:text="${class.classroom}">ауд. 303 (кронв.)</span>
+                        <span class="class-tag professor"
+                              th:text="${class.professor}">Иванов И.И., доц., к.ф.-м.н.</span>
+                    </div>
+                    <div class="class-main">
+                        <div class="time-block">
+                            <span class="time" th:text="${#temporals.format(class.startTime, 'HH:mm')}">08:20</span>
+                            <span class="time time-separator">—</span>
+                            <span class="time" th:text="${#temporals.format(class.endTime, 'HH:mm')}">10:00</span>
+                        </div>
+                        <span class="discipline-name" th:text="${class.disciplineName}">Математический анализ</span>
+                    </div>
+                </div>
+            </div>
+            <div class="empty-classes" th:if="${#lists.isEmpty(day.classes)}">
+                нет занятий
+            </div>
+        </div>
+    </div>
+</main>
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-grid">
+            <div class="footer-logo">
+                <img src="/images/itmo-logo-light.svg" alt="ИТМО">
+                <div class="footer-about">
+                    <p>Национальный исследовательский университет ИТМО — ведущий вуз России в области информационных и
+                        фотонных технологий</p>
+                </div>
+                <div class="social-links">
+                    <a href="https://vk.com/itmoru" aria-label="ВКонтакте"><i class="fab fa-vk"></i></a>
+                    <a href="https://t.me/itmo_uni" aria-label="Telegram"><i class="fab fa-telegram"></i></a>
+                    <a href="https://www.youtube.com/spbifmo" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            <div>
+                <h3 class="footer-title">Контакты</h3>
+                <div class="footer-contact-item">
+                    <i class="fas fa-map-pin"></i>
+                    <span>197101, г. Санкт-Петербург, Кронверкский пр., д. 49</span>
+                </div>
+                <div class="footer-contact-item">
+                    <i class="fas fa-phone"></i>
+                    <a href="tel:+78122329704">+7 (812) 232-97-04</a>
+                </div>
+                <div class="footer-contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <a href="mailto:od@itmo.ru">od@itmo.ru</a>
+                </div>
+                <div class="footer-contact-item">
+                    <i class="fas fa-globe"></i>
+                    <a href="https://itmo.ru" target="_blank">itmo.ru</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div>© 2026 Университет ИТМО</div>
+            <div class="footer-bottom-links">
+                <a href="#">Сведения об образовательной организации</a>
+                <a href="#">Политика конфиденциальности</a>
+                <a href="#">Правила приёма</a>
+            </div>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:if="${schedule.id == null}">Добавление пары</title>
+    <title th:unless="${schedule.id == null}">Редактирование пары</title>
+    <link rel="icon" href="/images/favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/styles/main.css">
+    <link rel="stylesheet" href="/styles/admin.css">
+</head>
+<body>
+<div class="header">
+    <div class="header-container">
+        <div class="brand">
+            <img src="/images/itmo-logo-light.svg" alt="ИТМО">
+            <span>Панель администрирования</span>
+        </div>
+        <div class="admin-header">
+            <a href="/admin" class="admin-button" title="Назад к списку">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<main class="main-content">
+    <div class="form-container">
+        <h1 th:if="${schedule.id == null}" style="margin-bottom: 10px;">Добавить пару</h1>
+        <h1 th:unless="${schedule.id == null}" style="margin-bottom: 10px;">Редактировать пару #<span th:text="${schedule.id}"></span></h1>
+
+        <form th:action="${schedule.id == null} ? '/admin/schedule/add' : '/admin/schedule/update/' + ${schedule.id}" method="post">
+            <div class="form-group">
+                <label>Дата:</label>
+                <input type="date" name="date" th:value="${#temporals.format(schedule.date, 'yyyy-MM-dd')}" required>
+            </div>
+            <div class="form-group">
+                <label>Начало:</label>
+                <input type="time" name="startTime" th:value="${schedule.startTime}" required>
+            </div>
+            <div class="form-group">
+                <label>Конец:</label>
+                <input type="time" name="endTime" th:value="${schedule.endTime}" required>
+            </div>
+            <div class="form-group">
+                <label>Группа:</label>
+                <select name="group.id" required>
+                    <option th:each="g : ${groups}" th:value="${g.id}" th:text="${g.code}" th:selected="${g.id == schedule.group?.id}"></option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Преподаватель:</label>
+                <select name="professor.id" required>
+                    <option th:each="p : ${professors}" th:value="${p.id}" th:text="${p.fullName}" th:selected="${p.id == schedule.professor?.id}"></option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Дисциплина:</label>
+                <select name="discipline.id" required>
+                    <option th:each="d : ${disciplines}" th:value="${d.id}" th:text="${d.name}" th:selected="${d.id == schedule.discipline?.id}"></option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Аудитория:</label>
+                <select name="classroom.id" required>
+                    <option th:each="c : ${classrooms}" th:value="${c.id}" th:text="${c.number} + ' (' + ${c.building} + ')'" th:selected="${c.id == schedule.classroom?.id}"></option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Тип занятия:</label>
+                <select name="classType" required>
+                    <option th:each="t : ${classTypes}" th:value="${t}" th:text="${t.title}" th:selected="${t == schedule.classType}"></option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Подгруппа (необязательно):</label>
+                <input type="number" name="subgroup" th:value="${schedule.subgroup}" placeholder="оставьте пустым, если для всей группы">
+            </div>
+
+            <div class="form-actions">
+                <a href="/admin" class="btn-cancel">Отмена</a>
+                <button type="submit" class="btn-submit">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</main>
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-grid">
+            <div class="footer-logo">
+                <img src="/images/itmo-logo-light.svg" alt="ИТМО">
+                <div class="footer-about">
+                    <p>Национальный исследовательский университет ИТМО — ведущий вуз России в области информационных и
+                        фотонных технологий</p>
+                </div>
+                <div class="social-links">
+                    <a href="https://vk.com/itmoru" aria-label="ВКонтакте"><i class="fab fa-vk"></i></a>
+                    <a href="https://t.me/itmo_uni" aria-label="Telegram"><i class="fab fa-telegram"></i></a>
+                    <a href="https://www.youtube.com/spbifmo" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            <div>
+                <h3 class="footer-title">Контакты</h3>
+                <div class="footer-contact-item">
+                    <i class="fas fa-map-pin"></i>
+                    <span>197101, г. Санкт-Петербург, Кронверкский пр., д. 49</span>
+                </div>
+                <div class="footer-contact-item">
+                    <i class="fas fa-phone"></i>
+                    <a href="tel:+78122329704">+7 (812) 232-97-04</a>
+                </div>
+                <div class="footer-contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <a href="mailto:od@itmo.ru">od@itmo.ru</a>
+                </div>
+                <div class="footer-contact-item">
+                    <i class="fas fa-globe"></i>
+                    <a href="https://itmo.ru" target="_blank">itmo.ru</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div>© 2026 Университет ИТМО</div>
+            <div class="footer-bottom-links">
+                <a href="#">Сведения об образовательной организации</a>
+                <a href="#">Политика конфиденциальности</a>
+                <a href="#">Правила приёма</a>
+            </div>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

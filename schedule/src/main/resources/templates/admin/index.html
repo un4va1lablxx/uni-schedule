@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Панель администрирования</title>
+  <link rel="icon" href="/images/favicon.ico">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/admin.css">
+</head>
+<body>
+<div class="header">
+  <div class="header-container">
+    <div class="brand">
+      <img src="/images/itmo-logo-light.svg" alt="ИТМО">
+      <span>Панель администрирования</span>
+    </div>
+    <div class="admin-header">
+      <a href="/" class="admin-button" title="На главную">
+        <i class="fas fa-arrow-left"></i>
+      </a>
+      <button class="admin-button" id="tableSelectBtn" title="Выбрать таблицу">
+        <i class="fas fa-table"></i>
+      </button>
+      <form th:action="@{/logout}" method="post" style="display:inline;">
+        <button type="submit" class="admin-button" title="Выйти">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+<main class="main-content">
+  <div id="welcomeMessage" class="welcome-message">
+    <p>для администрирования нажмите на кнопку выбора таблицы в правом верхнем углу</p>
+  </div>
+  <div id="tableContainer" class="glass-table-container" style="display: none;">
+    <div class="table-header">
+      <h2 id="currentTableTitle"></h2>
+      <button class="add-button" id="addRecordBtn" title="Добавить запись">
+        <i class="fas fa-plus"></i>
+      </button>
+    </div>
+    <div class="glass-table-wrapper">
+      <table class="glass-table" id="dataTable">
+        <thead id="tableHeader"></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+<div id="tableModal" class="modal">
+  <div class="modal-content">
+    <h3>Выберите таблицу для отображения</h3>
+    <div id="tableRadios">
+      <label><input type="radio" name="tableSelect" value="groups"> группы</label>
+      <label><input type="radio" name="tableSelect" value="professors"> преподаватели</label>
+      <label><input type="radio" name="tableSelect" value="disciplines"> дисциплины</label>
+      <label><input type="radio" name="tableSelect" value="classrooms"> аудитории</label>
+      <label><input type="radio" name="tableSelect" value="schedule"> расписание</label>
+    </div>
+    <div class="modal-buttons">
+      <button id="modalCancel">Отмена</button>
+      <button id="modalApply">Применить</button>
+    </div>
+  </div>
+</div>
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-grid">
+      <div class="footer-logo">
+        <img src="/images/itmo-logo-light.svg" alt="ИТМО">
+        <div class="footer-about">
+          <p>Национальный исследовательский университет ИТМО — ведущий вуз России в области информационных и
+            фотонных технологий</p>
+        </div>
+        <div class="social-links">
+          <a href="https://vk.com/itmoru" aria-label="ВКонтакте"><i class="fab fa-vk"></i></a>
+          <a href="https://t.me/itmo_uni" aria-label="Telegram"><i class="fab fa-telegram"></i></a>
+          <a href="https://www.youtube.com/spbifmo" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+        </div>
+      </div>
+      <div>
+        <h3 class="footer-title">Контакты</h3>
+        <div class="footer-contact-item">
+          <i class="fas fa-map-pin"></i>
+          <span>197101, г. Санкт-Петербург, Кронверкский пр., д. 49</span>
+        </div>
+        <div class="footer-contact-item">
+          <i class="fas fa-phone"></i>
+          <a href="tel:+78122329704">+7 (812) 232-97-04</a>
+        </div>
+        <div class="footer-contact-item">
+          <i class="fas fa-envelope"></i>
+          <a href="mailto:od@itmo.ru">od@itmo.ru</a>
+        </div>
+        <div class="footer-contact-item">
+          <i class="fas fa-globe"></i>
+          <a href="https://itmo.ru" target="_blank">itmo.ru</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>© 2026 Университет ИТМО</div>
+      <div class="footer-bottom-links">
+        <a href="#">Сведения об образовательной организации</a>
+        <a href="#">Политика конфиденциальности</a>
+        <a href="#">Правила приёма</a>
+      </div>
+    </div>
+  </div>
+</footer>
+<script>
+  (function() {
+      const tableConfig = {
+          groups: {
+              api: '/api/groups',
+              title: 'Группы',
+              columns: ['id', 'code'],
+              columnNames: ['ID', 'Код группы']
+          },
+          professors: {
+              api: '/api/professors',
+              title: 'Преподаватели',
+              columns: ['id', 'fullName', 'academicRank', 'academicDegree'],
+              columnNames: ['ID', 'ФИО', 'Звание', 'Учёная степень']
+          },
+          disciplines: {
+              api: '/api/disciplines',
+              title: 'Дисциплины',
+              columns: ['id', 'name'],
+              columnNames: ['ID', 'Название']
+          },
+          classrooms: {
+              api: '/api/classrooms',
+              title: 'Аудитории',
+              columns: ['id', 'number', 'building'],
+              columnNames: ['ID', 'Номер', 'Корпус']
+          },
+          schedule: {
+              api: '/api/schedules',
+              title: 'Расписание',
+              columns: ['id', 'date', 'startTime', 'endTime', 'group.code', 'discipline.name', 'professor.fullName', 'classroom.number', 'classTypeTitle', 'subgroup'],
+              columnNames: ['ID', 'Дата', 'Начало', 'Конец', 'Группа', 'Дисциплина', 'Преподаватель', 'Аудитория', 'Тип', 'Подгруппа']
+          }
+      };
+
+      let currentTable = null;
+      const welcomeDiv = document.getElementById('welcomeMessage');
+      const tableContainer = document.getElementById('tableContainer');
+      const tableHeader = document.getElementById('tableHeader');
+      const tableBody = document.getElementById('tableBody');
+      const currentTableTitle = document.getElementById('currentTableTitle');
+      const addRecordBtn = document.getElementById('addRecordBtn');
+      const tableSelectBtn = document.getElementById('tableSelectBtn');
+      const modal = document.getElementById('tableModal');
+      const modalCancel = document.getElementById('modalCancel');
+      const modalApply = document.getElementById('modalApply');
+      const radioButtons = document.querySelectorAll('#tableRadios input[type="radio"]');
+
+      tableSelectBtn.addEventListener('click', () => {
+          modal.classList.add('active');
+      });
+
+      modalCancel.addEventListener('click', () => {
+          modal.classList.remove('active');
+          radioButtons.forEach(rb => rb.checked = false);
+      });
+
+      modalApply.addEventListener('click', () => {
+          const selected = Array.from(radioButtons).find(rb => rb.checked);
+          if (selected) {
+              const tableName = selected.value;
+              loadTable(tableName);
+              modal.classList.remove('active');
+              radioButtons.forEach(rb => rb.checked = false);
+          } else {
+              alert('Выберите таблицу');
+          }
+      });
+
+      async function loadTable(tableName) {
+          const config = tableConfig[tableName];
+          if (!config) return;
+
+          currentTable = tableName;
+          currentTableTitle.textContent = config.title;
+          tableHeader.innerHTML = `<tr>${config.columnNames.map(name => `<th>${name}</th>`).join('')}<th>Действия</th></tr>`;
+
+          try {
+              const response = await fetch(config.api);
+              const data = await response.json();
+              renderTableData(data, config);
+              tableContainer.style.display = 'block';
+              welcomeDiv.style.display = 'none';
+          } catch (err) {
+              console.error('Ошибка загрузки данных:', err);
+              tableBody.innerHTML = '<tr><td colspan="100%">Ошибка загрузки данных</td></tr>';
+          }
+      }
+
+      function renderTableData(data, config) {
+          if (!data || data.length === 0) {
+              tableBody.innerHTML = '<tr><td colspan="100%">Нет данных</td></tr>';
+              return;
+          }
+          const rows = data.map(item => {
+              const cells = config.columns.map(col => {
+                  let value = item;
+                  const parts = col.split('.');
+                  for (const part of parts) {
+                      value = value ? value[part] : '';
+                  }
+                  if (value === null || value === undefined) value = '';
+                  if (col === 'date') value = value ? new Date(value).toLocaleDateString('ru-RU') : '';
+                  if (col === 'startTime' || col === 'endTime') value = value ? value.slice(0,5) : '';
+                  return `<td>${value}</td>`;
+              }).join('');
+              const actions = `
+                  <td class="action-icons">
+                      <button class="action-icon edit" data-id="${item.id}" data-table="${currentTable}" title="Редактировать"><i class="fas fa-edit"></i></button>
+                      <button class="action-icon delete" data-id="${item.id}" data-table="${currentTable}" title="Удалить"><i class="fas fa-trash-alt"></i></button>
+                  </td>
+              `;
+              return `<tr>${cells}${actions}</tr>`;
+          }).join('');
+          tableBody.innerHTML = rows;
+
+          document.querySelectorAll('.action-icon.edit').forEach(btn => {
+              btn.addEventListener('click', () => {
+                  const id = btn.dataset.id;
+                  const table = btn.dataset.table;
+                  window.location.href = `/admin/${table}/edit/${id}`;
+              });
+          });
+          document.querySelectorAll('.action-icon.delete').forEach(btn => {
+              btn.addEventListener('click', async () => {
+                  if (!confirm('Удалить запись?')) return;
+                  const id = btn.dataset.id;
+                  const table = btn.dataset.table;
+                  try {
+                      const response = await fetch(`/api/${table}/${id}`, { method: 'DELETE' });
+                      if (response.ok) {
+                          loadTable(currentTable);
+                      } else {
+                          alert('Ошибка удаления');
+                      }
+                  } catch (err) {
+                      console.error(err);
+                      alert('Ошибка удаления');
+                  }
+              });
+          });
+      }
+
+      addRecordBtn.addEventListener('click', () => {
+          if (currentTable) {
+              window.location.href = `/admin/${currentTable}/add`;
+          }
+      });
+  })();
+</script>
+</body>
+</html>
